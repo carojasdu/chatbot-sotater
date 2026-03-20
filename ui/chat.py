@@ -68,6 +68,7 @@ def render_chat_tab(project_name: str) -> None:
                 st.markdown(final_response)
                 display_history.append({"role": "assistant", "content": final_response})
                 st.session_state["agent_messages"][project_name] = response["messages"]
+                st.rerun()
 
             except Exception as e:
                 error_msg = f"Something went wrong: {e}"
