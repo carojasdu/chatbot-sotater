@@ -1,3 +1,4 @@
+import requests
 from langchain_core.tools import tool
 from tavily import TavilyClient
 
@@ -30,7 +31,22 @@ def scrape_and_index(url: str, project_name: str) -> str:
     Use this after finding relevant sources with web_search. The content will be
     saved locally and made searchable via RAG.
     """
-    doc_info = fetch_and_save(url, project_name)
+    try:
+        doc_info = fetch_and_save(url, project_name)
+    except requests.exceptions.HTTPError as e:
+        status_code = e.response.status_code if e.response is not None else "unknown"
+        if status_code == 403:
+            return (
+                f"Access denied (403 Forbidden) for {url}. "
+                "This site blocks automated access. Skip it and try a different source."
+            )
+        if status_code == 429:
+            return (
+                f"Rate limited (429) by {url}. Skip it and try a different source."
+            )
+        return f"HTTP {status_code} error fetching {url}. Try a different source."
+    except requests.exceptions.RequestException as e:
+        return f"Failed to fetch {url}: {e}. Try a different source."
 
     # Read the saved content and index it
     doc_path = get_project_path(project_name) / "documents" / doc_info["filename"]
@@ -44,13 +60,13 @@ def scrape_and_index(url: str, project_name: str) -> str:
     )
 
     # Update chunk count in registry
+    import json
+
     registry = get_doc_registry(project_name)
     for entry in registry:
         if entry["document_id"] == doc_info["document_id"]:
             entry["chunk_count"] = chunk_count
     registry_path = get_project_path(project_name) / "doc_registry.json"
-    import json
-
     registry_path.write_text(json.dumps(registry, indent=2))
 
     return (
