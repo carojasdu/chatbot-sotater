@@ -62,7 +62,8 @@ def render_chat_tab(project_name: str) -> None:
                 final_response = ""
                 for msg in reversed(final_messages):
                     if isinstance(msg, AIMessage) and not msg.tool_calls:
-                        final_response = msg.content
+                        # .text keeps only the text blocks (content may also hold thinking blocks)
+                        final_response = msg.text
                         break
 
                 st.markdown(final_response)
