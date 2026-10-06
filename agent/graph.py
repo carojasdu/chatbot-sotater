@@ -43,5 +43,5 @@ _tools = [web_search, scrape_and_index, rag_query]
 
 def build_agent():
     """Build and return the compiled LangGraph agent."""
-    llm = ChatAnthropic(model="claude-sonnet-4-20250514", temperature=0)
+    llm = ChatAnthropic(model="claude-sonnet-5-5", max_tokens=16000)
     return create_react_agent(llm, _tools, prompt=SYSTEM_PROMPT)
