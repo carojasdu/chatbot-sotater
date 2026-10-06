@@ -6,3 +6,6 @@ textColor = "#262730"
 
 [server]
 headless = true
+# Disable the source watcher: it inspects every imported module, and transformers'
+# lazy imports make it log noisy torchvision tracebacks. Restart the app after code edits.
+fileWatcherType = "none"
